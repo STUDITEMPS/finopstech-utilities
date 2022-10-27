@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# Check we run from th project root.
+if [[ ! -f ./assets/package-lock.json ]]
+then
+    echo "Please execute from the project root."
+    exit 1
+fi
+
+promt1="This script will erase the integrity checksum of node modules related to the studitemps-design-system.
+Shall we proceed? (y/n): "
+
+read -p "$promt1" -r
+echo    # (optional) move to a new line
+if [[ ! $REPLY =~ ^[Yy]$ ]]
+then
+    echo "We did nothing."
+    exit 1
+fi
+
+jq 'delpaths([["packages", "node_modules/bootstrap", "integrity"], ["dependencies", "bootstrap", "integrity"]])' ./assets/package-lock.json > ./assets/tmp.json
+
+if [[ ! $(diff ./assets/tmp.json ./assets/package-lock.json) ]]
+then
+    echo "Nothing to erase."
+    rm ./assets/tmp.json
+    exit 0
+fi
+
+mv ./assets/tmp.json ./assets/package-lock.json
+
+echo "Problematic integrity checksums erased."
+
+promt2="Shall we add, commit and push the change? (y/n): "
+
+read -p "$promt2" -r
+echo    # (optional) move to a new line
+if [[ ! $REPLY =~ ^[Yy]$ ]]
+then
+    echo "Okay, we won't. Here is your git status:"
+    echo
+    git status
+    exit 0
+fi
+
+# Unstage all files
+git reset -- .
+# Add erased integrity
+git add ./assets/package-lock.json
+# Commit changes
+git commit -m "Erased faulty integrity checksum of studitemps-design-system"
+# Push changes
+git push
