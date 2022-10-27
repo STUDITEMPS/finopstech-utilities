@@ -1,6 +1,6 @@
 #! /usr/bin/env sh
 
-declare -a default_apps=("arbeitnehmerverwaltung" "arbeitsentgelt-production" "freigabe-production" "rechnungsstellung-production" "sv-einordnung-production")
+declare -a default_apps=("arbeitnehmerverwaltung-prod" "arbeitsentgelt-production" "freigabe-production" "rechnungsstellung-production" "sv-einordnung-production")
 # run with default apps or apps provided via command-line arguments
 apps=("${@:-${default_apps[@]}}")
 
