@@ -1,0 +1,9 @@
+#!/bin/bash -ieu
+
+cd finopstech_utilities
+
+# get dependencies
+mix deps.get
+# compile application for dev and test
+mix compile
+MIX_ENV=test mix compile

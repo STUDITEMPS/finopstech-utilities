@@ -1,0 +1,12 @@
+#!/bin/bash -ieu
+
+cd finopstech_utilities
+
+# install from .tool-versions
+asdf install
+
+# install rebar and hex, present in base image
+install-mix-tooling
+
+# prepare application
+mix deps.get
