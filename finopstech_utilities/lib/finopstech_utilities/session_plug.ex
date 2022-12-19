@@ -2,12 +2,17 @@ defmodule FinopstechUtilities.SessionPlug do
   @moduledoc """
   Our custom wrapper around `Plug.Session` in order
   to enable loading of session configuration at runtime.
+
+  The options are `app` and `key` that point to the configured session
+  options defined here: https://hexdocs.pm/plug/Plug.Session.html
   """
 
-  @default_options [key: :session_options]
+  @type option :: {:app, atom()} | {:key, atom()}
+  @type options :: [option]
 
+  @spec init(options) :: options
   def init(options) do
-    Keyword.merge(@default_options, options)
+    options
   end
 
   def call(conn, options) do

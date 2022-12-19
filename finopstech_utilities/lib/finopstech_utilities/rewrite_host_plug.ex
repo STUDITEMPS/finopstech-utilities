@@ -1,12 +1,16 @@
 defmodule FinopstechUtilities.RewriteHostPlug do
   @moduledoc """
   We use this plug to redirect from alternative domains to our current one.
-  Namely we redirect from .studitemps.tech to jobvalley.tech
+  Namely we redirect from .studitemps.tech to jobvalley.tech.
+
+  The options are `app` and `key` that point to the Phoenix.Endpoint configuration:
+  https://hexdocs.pm/phoenix/Phoenix.Endpoint.html#module-endpoint-configuration
   """
 
-  @doc """
-  Init is not in use as this plug is meant to be configurable at runtime.
-  """
+  @type option :: {:app, atom()} | {:key, atom()}
+  @type options :: [option]
+
+  @spec init(options) :: options
   def init(options) do
     options
   end
