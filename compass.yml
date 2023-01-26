@@ -1,0 +1,13 @@
+name: finopstech-utilities
+id: 'ari:cloud:compass:e1d41f8a-4a61-4fa9-80d9-a0967619f2ea:component/e8fcfeae-19d1-4cce-9554-6226e62cd618/e0925669-4fff-42eb-a606-a6e50fdf72be'
+description: 'A few useful tools, scripts & some shared code'
+ownerId: 'ari:cloud:teams::team/02f444fe-c2c0-4af5-a033-cb345c5f2324'
+fields: {}
+links:
+  - name: null
+    type: REPOSITORY
+    url: 'https://github.com/STUDITEMPS/finopstech-utilities'
+relationships: {}
+
+# Learn more about formatting compass.yml:
+# https://go.atlassian.com/compass-yml-format
