@@ -44,6 +44,8 @@ if [[ ${#APPS[@]} == 0 ]]; then
 fi
 
 for app in ${APPS[@]}; do
+  echo "Upgrading postgres database for app: ${app}."
+  echo ""
   echo -n "Determine plan ... "
   plan=$(heroku addons:info DATABASE_URL --app $app | grep 'Plan:' | sed -E 's/Plan: +//')
   echo ${plan}
