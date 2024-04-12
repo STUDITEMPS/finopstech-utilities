@@ -49,9 +49,20 @@ for app in ${APPS[@]}; do
   echo -n "Determine plan ... "
   plan=$(heroku addons:info DATABASE_URL --app $app | grep 'Plan:' | sed -E 's/Plan: +//')
   echo ${plan}
-  echo -n "Determine old database additional attachment name ... "
-  old_db=$(heroku pg:info DATABASE_URL --app $app | grep '=== DATABASE_URL,' | sed -E 's/=== DATABASE_URL, +//')
-  echo ${old_db}
+  echo "Determine old database additional attachment name ... "
+  pg_info_database_url=$(heroku pg:info DATABASE_URL --app $app)
+  database_url_info=$(echo "${pg_info_database_url}" | grep '=== DATABASE_URL,' || :)
+  old_db=""
+  if [[ -z "${database_url_info}" ]]; then
+    attachment_alias="HEROKU_POSTGRESQL_VALLEY"
+    echo "Main database is missing additional attachment name. Adding alias ${attachment_alias}..."
+    addon=$(echo "${pg_info_database_url}" | grep 'Add-on:' | sed -E 's/Add-on: +//')
+    heroku addons:attach $addon --app $app --as ${attachment_alias}
+    old_db="${attachment_alias}"
+  else
+    old_db=$(echo "${database_url_info}" | sed -E 's/=== DATABASE_URL, +//')
+    echo "${old_db}"
+  fi
   if $USE_COPY; then
     new_db_name=$(heroku addons:create $plan --app $app | grep -oE 'postgresql-[^ ]+' | head -n1)
     heroku pg:wait --app $app
