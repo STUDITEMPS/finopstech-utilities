@@ -24,13 +24,14 @@ ADD_FOLLOWER=false
 USE_COPY=true
 AUTO_CONFIRM=false
 APPS=()
+PASS_THROUGH_OPTIONS=()
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        --debug) set -o xtrace; shift ;;
+        --debug) set -o xtrace; PASS_THROUGH_OPTIONS+=("--debug"); shift ;;
         -h|--help) echo "$USAGE"; exit 0; shift ;;
         --add-follower) ADD_FOLLOWER=true; shift ;;
         --upgrade-existing-follower) USE_COPY=false; shift ;;
-        --confirm) AUTO_CONFIRM=true; shift ;;
+        --confirm) AUTO_CONFIRM=true; PASS_THROUGH_OPTIONS+=("--confirm"); shift ;;
         *) APPS+=($1)
         shift
         ;;
@@ -54,7 +55,7 @@ for app in ${APPS[@]}; do
     heroku pg:wait --app $app
     new_db=$(heroku addons:info $new_db_name | grep -oE 'HEROKU_POSTGRESQL_.+$')
 
-    ${PROJECT_DIR}/enter-maintenance-mode.sh --confirm $AUTO_CONFIRM $app
+    ${PROJECT_DIR}/enter-maintenance-mode.sh ${PASS_THROUGH_OPTIONS[@]} $app
 
     echo "Will copy ${old_db} to ${new_db} ..."
     if $AUTO_CONFIRM; then
@@ -67,7 +68,7 @@ for app in ${APPS[@]}; do
     followers_string=$(heroku pg:info DATABASE_URL --app $app | grep 'Followers:' | sed -E 's/Followers: +//')
     followers=(${followers_string//,/})
     follower=${followers[0]}
-    ${PROJECT_DIR}/enter-maintenance-mode.sh --confirm $AUTO_CONFIRM $app
+    ${PROJECT_DIR}/enter-maintenance-mode.sh ${PASS_THROUGH_OPTIONS[@]} $app
     echo "Will upgrade & promote ${follower} and thereby demote ${old_db} ..."
     if $AUTO_CONFIRM; then
       heroku pg:upgrade $follower --app $app --confirm $app || true
@@ -78,7 +79,7 @@ for app in ${APPS[@]}; do
     heroku pg:promote $new_db --app $app || true
   fi
   
-  ${PROJECT_DIR}/leave-maintenance-mode.sh --confirm $AUTO_CONFIRM $app
+  ${PROJECT_DIR}/leave-maintenance-mode.sh ${PASS_THROUGH_OPTIONS[@]} $app
 
   if ${ADD_FOLLOWER}; then
     echo "Adding follower..."

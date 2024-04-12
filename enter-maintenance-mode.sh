@@ -27,13 +27,7 @@ while [[ "$#" -gt 0 ]]; do
         --debug) set -o xtrace; shift ;;
         -h|--help) echo "$USAGE"; exit 0; shift ;;
         --add-dyno-type) shift; DYNO_TYPES+=($1); shift ;;
-        --confirm) shift;
-          case $1 in
-            true|1|yes) CONFIRM=true ;;
-            false|0|no) CONFIRM=false ;;
-          esac
-          shift
-          ;;
+        --confirm) CONFIRM=true; shift ;;
         *) APPS+=($1); shift ;;
     esac
 done
