@@ -102,9 +102,9 @@ for app in ${APPS[@]}; do
   echo "Destroy old database ${old_db} ..."
   followers_of_old_db_string=$(heroku pg:info $old_db --app $app | grep 'Followers:' || :| sed -E 's/Followers: +//')
   if $AUTO_CONFIRM; then
-    heroku addons:destroy $old_db --app $app --confirm $app
+    heroku addons:destroy $old_db --wait --app $app --confirm $app
   else
-    heroku addons:destroy $old_db --app $app
+    heroku addons:destroy $old_db --wait --app $app
   fi
 
   followers_of_old_db=(${followers_of_old_db_string//,/})
