@@ -89,7 +89,7 @@ for app in ${APPS[@]}; do
       heroku pg:upgrade $follower --app $app || true
     fi
     heroku pg:wait --app $app
-    heroku pg:promote $new_db --app $app || true
+    heroku pg:promote $follower --app $app || true
   fi
   
   ${PROJECT_DIR}/leave-maintenance-mode.sh ${PASS_THROUGH_OPTIONS[@]} $app
