@@ -21,6 +21,7 @@ USAGE='leave-maintenance-mode.sh [--debug] [-h|--help] [--add-dyno-type type=cou
 
 APPS=()
 DYNO_TYPE_CONFIGS=()
+DYNO_TYPES_SPECIFIED=true
 CONFIRM=false
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -54,7 +55,7 @@ if [ ${#APPS[@]} -eq 0 ]; then
   APPS=${DEFAULT_APPS[@]}
 fi
 if [ ${#DYNO_TYPE_CONFIGS[@]} -eq 0 ]; then
-  DYNO_TYPE_CONFIGS=('web=1')
+  DYNO_TYPES_SPECIFIED=false
 fi
 
 if ! ${CONFIRM}; then
@@ -66,9 +67,19 @@ if ! ${CONFIRM}; then
 fi
 
 for app in "${APPS[@]}"; do
-  for dyno_type_config in ${DYNO_TYPE_CONFIGS[@]}; do
-    heroku ps:scale ${dyno_type_config} --app ${app}
-  done
+  if ${DYNO_TYPES_SPECIFIED}; then
+    for dyno_type_config in ${DYNO_TYPE_CONFIGS[@]}; do
+      heroku ps:scale ${dyno_type_config} --app ${app}
+    done
+  else
+    if [ -f ".heroku_dyno_scales_before_for_${app}" ]; then
+      echo "Using existing .heroku_dyno_scales_before_for_${app} file for scaling dynos back up..."
+      cat ".heroku_dyno_scales_before_for_${app}" | xargs -I{} heroku ps:scale {} --app ${app}
+    else
+      heroku ps:scale web=1 --app ${app}
+    fi
+  fi
+  
   disable_maintenance ${app} &
 done
 
