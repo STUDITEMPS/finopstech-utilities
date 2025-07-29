@@ -30,11 +30,11 @@ defmodule FinopstechUtilities.Modules do
 
 
       defmodule My.Application do
-        import FinopstechUtilities.Modules
+        alias FinopstechUtilities.Modules
 
         def start(_type, _args) do
           # Will contain `My.EventListener` only for :dev and :test builds
-          children = find(group: {:event_listeners, env: Mix.env()})
+          children = Modules.find(group: {:event_listeners, env: Mix.env()})
 
           opts = [strategy: :one_for_one, name: My.Supervisor]
           Supervisor.start_link(children, opts)
