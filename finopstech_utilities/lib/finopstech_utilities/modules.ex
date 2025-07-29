@@ -7,10 +7,10 @@ defmodule FinopstechUtilities.Modules do
       end
 
       defmodule My.Application do
-        import FinopstechUtilities.Modules
+        alias FinopstechUtilities.Modules
 
         def start(_type, _args) do
-          children = find(group: :event_listeners)
+          children = Modules.find(group: :event_listeners)
 
           opts = [strategy: :one_for_one, name: My.Supervisor]
           Supervisor.start_link(children, opts)
