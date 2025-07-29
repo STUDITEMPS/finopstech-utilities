@@ -58,7 +58,7 @@ defmodule FinopstechUtilities.Modules do
   Find modules that match the given criteria.
 
   This function will search through the modules of the current application, when
-  not given en explicit list of modules.
+  not given an explicit list of modules.
 
   ## Examples
 
