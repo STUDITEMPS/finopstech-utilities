@@ -24,7 +24,8 @@ defmodule FinopstechUtilities.MixProject do
     [
       {:plug, "~> 1.14"},
       {:phoenix, "~> 1.6"},
-      {:jason, "~> 1.0"}
+      {:jason, "~> 1.0"},
+      {:ecto, "~> 3.0", optional: true}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
