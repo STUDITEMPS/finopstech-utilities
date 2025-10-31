@@ -41,6 +41,16 @@ defmodule Shared.Enum do
     end
   end
 
+  def to_urn(value) do
+    enum = value.enum()
+
+    if function_exported?(enum, :to_urn, 1) do
+      enum.to_urn(value)
+    else
+      raise ArgumentError, "Enum #{inspect(enum)} does not specify a URN prefix"
+    end
+  end
+
   @empty_block (quote do
                 end)
 
@@ -70,7 +80,8 @@ defmodule Shared.Enum do
     else
       quote do
         @spec to_urn(t()) :: String.t()
-        def to_urn(value) when is_value(value), do: @urn_prefix <> unquote(__MODULE__).to_string(value, __MODULE__)
+        def to_urn(value) when is_value(value),
+          do: @urn_prefix <> unquote(__MODULE__).to_string(value, __MODULE__)
       end
     end
   end
@@ -81,7 +92,10 @@ defmodule Shared.Enum do
       @empty_block
     else
       quote do
-        @urns Map.new(@values, &{@urn_prefix <> unquote(__MODULE__).to_string(&1, __MODULE__), &1})
+        @urns Map.new(
+                @values,
+                &{@urn_prefix <> unquote(__MODULE__).to_string(&1, __MODULE__), &1}
+              )
         @spec from_urn(String.t()) :: t()
         def from_urn(urn) when is_map_key(@urns, urn), do: Map.get(@urns, urn)
       end
@@ -91,7 +105,15 @@ defmodule Shared.Enum do
   defp build_modules(values, env) do
     Enum.map(values, fn {:__aliases__, _ctx, [name]} ->
       module = Module.concat(env.module, name)
-      Module.create(module, @empty_block, env)
+
+      Module.create(
+        module,
+        quote do
+          @enum unquote(env.module)
+          def enum, do: @enum
+        end,
+        env
+      )
 
       quote do
         alias unquote(module)
@@ -102,7 +124,8 @@ defmodule Shared.Enum do
   defp optionaly_build_urn_functions(opts) do
     case Keyword.fetch(opts, :urn_prefix) do
       {:ok, urn_prefix} when is_binary(urn_prefix) ->
-        urn_prefix = if String.ends_with?(urn_prefix, ":"), do: urn_prefix, else: urn_prefix <> ":"
+        urn_prefix =
+          if String.ends_with?(urn_prefix, ":"), do: urn_prefix, else: urn_prefix <> ":"
 
         quote do
           @urn_prefix unquote(urn_prefix)
