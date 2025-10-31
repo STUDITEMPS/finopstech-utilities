@@ -43,6 +43,7 @@ defmodule Shared.Enum do
 
   def to_urn(value) do
     enum = value.enum()
+    Code.ensure_loaded(enum)
 
     if function_exported?(enum, :to_urn, 1) do
       enum.to_urn(value)
