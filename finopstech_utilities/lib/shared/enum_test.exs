@@ -27,7 +27,8 @@ defmodule Shared.EnumTest do
   defmodule SingleValueEnum do
     use Shared.Enum,
       values: [OnlyOne],
-      urn_prefix: "tech.studitemps:single:"
+      urn_prefix: "tech.studitemps:single:",
+      word_separator: "-"
   end
 
   # Test enum with two values
@@ -116,7 +117,7 @@ defmodule Shared.EnumTest do
 
     test "converts single value enum to URN" do
       assert SingleValueEnum.to_urn(SingleValueEnum.OnlyOne) ==
-               "tech.studitemps:single:only_one"
+               "tech.studitemps:single:only-one"
     end
 
     test "converts two value enum to URN" do
@@ -140,7 +141,7 @@ defmodule Shared.EnumTest do
     end
 
     test "converts URN for single value enum" do
-      assert SingleValueEnum.from_urn("tech.studitemps:single:only_one") ==
+      assert SingleValueEnum.from_urn("tech.studitemps:single:only-one") ==
                SingleValueEnum.OnlyOne
     end
 
