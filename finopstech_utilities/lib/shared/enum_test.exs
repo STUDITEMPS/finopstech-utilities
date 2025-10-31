@@ -28,7 +28,7 @@ defmodule Shared.EnumTest do
     use Shared.Enum,
       values: [OnlyOne],
       urn_prefix: "tech.studitemps:single:",
-      word_separator: "-"
+      urn_word_separator: "-"
   end
 
   # Test enum with two values

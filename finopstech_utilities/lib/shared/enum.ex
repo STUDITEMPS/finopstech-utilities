@@ -57,11 +57,11 @@ defmodule Shared.Enum do
   @doc false
   defmacro __using__(opts) do
     values = Keyword.fetch!(opts, :values)
-    word_separator = Keyword.get(opts, :word_separator, "_")
+    urn_word_separator = Keyword.get(opts, :urn_word_separator, "_")
 
     quote do
       unquote_splicing(build_modules(values, __CALLER__))
-      @word_separator unquote(word_separator)
+      @urn_word_separator unquote(urn_word_separator)
       unquote(optionaly_build_urn_functions(opts))
 
       @type t :: unquote(build_type_spec(values))
@@ -83,7 +83,7 @@ defmodule Shared.Enum do
       quote do
         @spec to_urn(t()) :: String.t()
         def to_urn(value) when is_value(value),
-          do: @urn_prefix <> unquote(__MODULE__).to_string(value, __MODULE__, @word_separator)
+          do: @urn_prefix <> unquote(__MODULE__).to_string(value, __MODULE__, @urn_word_separator)
       end
     end
   end
@@ -96,8 +96,8 @@ defmodule Shared.Enum do
       quote do
         @urns Map.new(
                 @values,
-                &{@urn_prefix <> unquote(__MODULE__).to_string(&1, __MODULE__, @word_separator),
-                 &1}
+                &{@urn_prefix <>
+                   unquote(__MODULE__).to_string(&1, __MODULE__, @urn_word_separator), &1}
               )
         @spec from_urn(String.t()) :: t()
         def from_urn(urn) when is_map_key(@urns, urn), do: Map.get(@urns, urn)
