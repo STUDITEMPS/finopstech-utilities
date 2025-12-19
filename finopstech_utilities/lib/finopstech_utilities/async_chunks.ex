@@ -119,15 +119,12 @@ defmodule FinopstechUtilities.AsyncChunks do
   @spec reduce(Enum.t(), (term(), term() -> term()), opts()) :: Enum.t()
   def reduce(enumerable, function, opts \\ [])
 
-  def reduce(enumerable, function, opts) when is_list(opts),
-    do: process(enumerable, Enum, :reduce, [function], opts)
+  def reduce(enumerable, function, opts) when is_list(opts), do: process(enumerable, Enum, :reduce, [function], opts)
 
   @spec reduce(Enum.t(), term(), (term(), term() -> term()), opts()) :: Enum.t()
-  def reduce(enumerable, acc, function) when is_function(function),
-    do: reduce(enumerable, acc, function, [])
+  def reduce(enumerable, acc, function) when is_function(function), do: reduce(enumerable, acc, function, [])
 
-  def reduce(enumerable, acc, function, opts),
-    do: process(enumerable, Enum, :reduce, [acc, function], opts)
+  def reduce(enumerable, acc, function, opts), do: process(enumerable, Enum, :reduce, [acc, function], opts)
 
   @doc """
   map_joins an enumerable processing it with async chunks.
@@ -148,12 +145,10 @@ defmodule FinopstechUtilities.AsyncChunks do
   @spec map_join(Enum.t(), (term() -> term()), opts()) :: Enum.t()
   def map_join(enumerable, function), do: map_join(enumerable, "", function, [])
 
-  def map_join(enumerable, function, opts) when is_list(opts),
-    do: map_join(enumerable, "", function, opts)
+  def map_join(enumerable, function, opts) when is_list(opts), do: map_join(enumerable, "", function, opts)
 
   @spec map_join(Enum.t(), term(), (term() -> term()), opts()) :: String.t() | Enum.t(String.t())
-  def map_join(enumerable, joiner, function) when is_function(function),
-    do: map_join(enumerable, joiner, function, [])
+  def map_join(enumerable, joiner, function) when is_function(function), do: map_join(enumerable, joiner, function, [])
 
   def map_join(enumerable, joiner, function, opts) do
     {flatten, opts} = Keyword.pop(opts, :flatten, true)

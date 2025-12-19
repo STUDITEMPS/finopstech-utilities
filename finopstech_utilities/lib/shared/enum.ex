@@ -37,7 +37,7 @@ defmodule Shared.Enum do
         raise ArgumentError, "#{inspect(value)} is not a submodule of #{inspect(enum)}"
 
       {:ok, suffix} ->
-        Enum.map_join(suffix, ".", &Macro.underscore/1) |> String.replace("_", word_separator)
+        suffix |> Enum.map_join(".", &Macro.underscore/1) |> String.replace("_", word_separator)
     end
   end
 

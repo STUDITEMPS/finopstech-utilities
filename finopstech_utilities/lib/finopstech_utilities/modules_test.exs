@@ -6,10 +6,12 @@ defmodule FinopstechUtilities.ModulesTest do
   import FinopstechUtilities.Modules
 
   defmodule My.EventListener do
+    @moduledoc false
     use FinopstechUtilities.Modules, group: :listener
   end
 
   defmodule Test.EventListener do
+    @moduledoc false
     use FinopstechUtilities.Modules,
       group: {:listener, env: :dev},
       group: {:listener, env: :test}

@@ -26,6 +26,7 @@ defmodule FinopstechUtilities.MixProject do
       {:phoenix, "~> 1.6"},
       {:jason, "~> 1.0"},
       {:ecto, "~> 3.0", optional: true},
+      {:styler, "~> 1.10", only: [:dev, :test], runtime: false},
       {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}

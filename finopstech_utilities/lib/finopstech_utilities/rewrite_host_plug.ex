@@ -29,45 +29,17 @@ defmodule FinopstechUtilities.RewriteHostPlug do
     end
   end
 
-  defp rewritten_url(
-         %Plug.Conn{
-           scheme: scheme,
-           port: port,
-           request_path: path,
-           query_string: ""
-         },
-         host
-       ) do
-    %URI{
-      host: host,
-      path: path,
-      port: port,
-      scheme: to_string(scheme)
-    }
-    |> URI.to_string()
+  defp rewritten_url(%Plug.Conn{scheme: scheme, port: port, request_path: path, query_string: ""}, host) do
+    URI.to_string(%URI{host: host, path: path, port: port, scheme: to_string(scheme)})
   end
 
-  defp rewritten_url(
-         %Plug.Conn{
-           scheme: scheme,
-           port: port,
-           request_path: path,
-           query_string: query_string
-         },
-         host
-       ) do
-    %URI{
-      host: host,
-      path: path,
-      port: port,
-      query: query_string,
-      scheme: to_string(scheme)
-    }
-    |> URI.to_string()
+  defp rewritten_url(%Plug.Conn{scheme: scheme, port: port, request_path: path, query_string: query_string}, host) do
+    URI.to_string(%URI{host: host, path: path, port: port, query: query_string, scheme: to_string(scheme)})
   end
 
   defp configured_host(app: app, key: key) do
-    Application.fetch_env!(app, key)
+    app
+    |> Application.fetch_env!(key)
     |> get_in([:url, :host])
   end
 end

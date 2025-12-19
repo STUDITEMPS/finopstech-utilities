@@ -26,8 +26,7 @@ if Code.ensure_loaded?(Ecto.ParameterizedType) do
     def cast(nil, _), do: {:ok, nil}
     def cast(data, %{mapping: mapping}) when is_map_key(mapping, data), do: {:ok, data}
 
-    def cast(data, %{inverse_mapping: mapping}) when is_map_key(mapping, data),
-      do: Map.fetch(mapping, data)
+    def cast(data, %{inverse_mapping: mapping}) when is_map_key(mapping, data), do: Map.fetch(mapping, data)
 
     def cast(_data, _params), do: :error
 
@@ -39,11 +38,9 @@ if Code.ensure_loaded?(Ecto.ParameterizedType) do
 
     def equal?(a, a, _params), do: true
 
-    def equal?(a, b, %{mapping: mapping}) when is_map_key(mapping, a),
-      do: b == Map.get(mapping, a)
+    def equal?(a, b, %{mapping: mapping}) when is_map_key(mapping, a), do: b == Map.get(mapping, a)
 
-    def equal?(a, b, %{inverse_mapping: mapping}) when is_map_key(mapping, a),
-      do: b == Map.get(mapping, a)
+    def equal?(a, b, %{inverse_mapping: mapping}) when is_map_key(mapping, a), do: b == Map.get(mapping, a)
 
     def equal?(_a, _b, _params), do: false
 

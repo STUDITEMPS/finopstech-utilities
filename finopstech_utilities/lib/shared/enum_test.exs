@@ -5,12 +5,14 @@ defmodule Shared.EnumTest do
 
   # Test enum without URN prefix
   defmodule SimpleEnum do
+    @moduledoc false
     use Shared.Enum,
       values: [Foo, Bar, BazQux]
   end
 
   # Test enum with URN prefix
   defmodule UrnEnum do
+    @moduledoc false
     use Shared.Enum,
       values: [Alpha, Beta, GammaDelta],
       urn_prefix: "tech.studitemps:context:entity:"
@@ -18,6 +20,7 @@ defmodule Shared.EnumTest do
 
   # Test enum with URN prefix that already ends with colon
   defmodule UrnEnumWithColon do
+    @moduledoc false
     use Shared.Enum,
       values: [One, Two],
       urn_prefix: "tech.studitemps:test:"
@@ -25,6 +28,7 @@ defmodule Shared.EnumTest do
 
   # Test enum with single value
   defmodule SingleValueEnum do
+    @moduledoc false
     use Shared.Enum,
       values: [OnlyOne],
       urn_prefix: "tech.studitemps:single:",
@@ -33,6 +37,7 @@ defmodule Shared.EnumTest do
 
   # Test enum with two values
   defmodule TwoValueEnum do
+    @moduledoc false
     use Shared.Enum,
       values: [First, Second],
       urn_prefix: "tech.studitemps:two:"
@@ -59,6 +64,7 @@ defmodule Shared.EnumTest do
   describe "is_value/1 guard" do
     test "returns true for valid SimpleEnum values" do
       require SimpleEnum
+
       assert SimpleEnum.is_value(SimpleEnum.Foo)
       assert SimpleEnum.is_value(SimpleEnum.Bar)
       assert SimpleEnum.is_value(SimpleEnum.BazQux)
@@ -67,6 +73,7 @@ defmodule Shared.EnumTest do
     test "returns false for invalid SimpleEnum values" do
       require SimpleEnum
       require UrnEnum
+
       refute SimpleEnum.is_value(SimpleEnum.Baz)
       refute SimpleEnum.is_value(UrnEnum.Alpha)
       refute SimpleEnum.is_value(:foo)
@@ -76,14 +83,16 @@ defmodule Shared.EnumTest do
 
     test "returns true for valid UrnEnum values" do
       require UrnEnum
+
       assert UrnEnum.is_value(UrnEnum.Alpha)
       assert UrnEnum.is_value(UrnEnum.Beta)
       assert UrnEnum.is_value(UrnEnum.GammaDelta)
     end
 
     test "returns false for invalid UrnEnum values" do
-      require UrnEnum
       require SimpleEnum
+      require UrnEnum
+
       refute UrnEnum.is_value(UrnEnum.Gamma)
       refute UrnEnum.is_value(SimpleEnum.Foo)
       refute UrnEnum.is_value(:alpha)

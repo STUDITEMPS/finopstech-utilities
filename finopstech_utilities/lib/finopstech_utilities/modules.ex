@@ -115,7 +115,8 @@ defmodule FinopstechUtilities.Modules do
   """
   @spec get_markers(module()) :: keyword()
   def get_markers(module) do
-    module.__info__(:attributes)
+    :attributes
+    |> module.__info__()
     |> Keyword.get_values(:module_markers)
     |> Enum.concat()
   end

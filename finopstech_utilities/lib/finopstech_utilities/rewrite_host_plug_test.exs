@@ -14,13 +14,13 @@ defmodule FinopstechUtilities.RewriteHostPlugTest do
 
   test "rewrites host", %{conn: conn} do
     conn = %{conn | host: "www.thishost.com"}
-    conn = conn |> RewriteHostPlug.call(host: "www.anotherhost.com")
+    conn = RewriteHostPlug.call(conn, host: "www.anotherhost.com")
     assert redirected_to(conn) == "http://www.anotherhost.com/"
   end
 
   test "keeps the path", %{conn: conn} do
     conn = %{conn | host: "www.thishost.com", request_path: "/foo/bar/baz"}
-    conn = conn |> RewriteHostPlug.call(host: "www.anotherhost.com")
+    conn = RewriteHostPlug.call(conn, host: "www.anotherhost.com")
     assert redirected_to(conn) == "http://www.anotherhost.com/foo/bar/baz"
   end
 
@@ -32,7 +32,7 @@ defmodule FinopstechUtilities.RewriteHostPlugTest do
         query_string: "foo=bar"
     }
 
-    conn = conn |> RewriteHostPlug.call(host: "www.anotherhost.com")
+    conn = RewriteHostPlug.call(conn, host: "www.anotherhost.com")
     assert redirected_to(conn) == "http://www.anotherhost.com/?foo=bar"
   end
 end

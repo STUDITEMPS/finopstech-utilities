@@ -1,10 +1,10 @@
 defmodule FinopstechUtilities.AsyncChunksTest do
   use ExUnit.Case, async: true
 
-  require Integer
-
   import Enum, only: [to_list: 1]
   import FinopstechUtilities.AsyncChunks
+
+  require Integer
 
   @schedulers System.schedulers_online()
 
