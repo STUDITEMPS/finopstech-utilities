@@ -32,12 +32,23 @@ defmodule FinopstechUtilities.Stream do
       |> stream_progress(100_000)
       |> Stream.run()
   """
-  def stream_progress(stream, total, device \\ :stdio) when is_integer(total) do
+  @spec stream_progress(list() | map()) :: Enum.t()
+  def stream_progress(enum), do: stream_progress(enum, :stdio)
+
+  @spec stream_progress(Enum.t(), non_neg_integer() | IO.device()) :: Enum.t()
+  def stream_progress(enum, total) when is_integer(total), do: stream_progress(enum, total, :stdio)
+
+  def stream_progress(list, device) when is_list(list), do: stream_progress(list, length(list), device)
+
+  def stream_progress(%{} = map, device) when not is_struct(map), do: stream_progress(map, map_size(map), device)
+
+  @spec stream_progress(Enum.t(), non_neg_integer(), IO.device()) :: Enum.t()
+  def stream_progress(enum, total, device) when is_integer(total) do
     digits = trunc(:math.log10(total)) + 1
     max_line_length = digits * 2 + 12
 
     stream_tap(
-      stream,
+      enum,
       1,
       fn _, count ->
         progress = :erlang.float_to_binary(count / total * 100, decimals: 2)
