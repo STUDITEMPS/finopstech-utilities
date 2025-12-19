@@ -24,6 +24,31 @@ defmodule FinopstechUtilities.Stream do
   end
 
   @doc """
+  Reports the progress of stream traversion to `:stdout`.
+
+  ## Example
+
+      1..100_000
+      |> stream_progress(100_000)
+      |> Stream.run()
+  """
+  def stream_progress(stream, total, device \\ :stdio) when is_integer(total) do
+    digits = trunc(:math.log10(total)) + 1
+    max_line_length = digits * 2 + 12
+
+    stream_tap(
+      stream,
+      1,
+      fn _, count ->
+        progress = :erlang.float_to_binary(count / total * 100, decimals: 2)
+        IO.write(device, "\r#{count}/#{total} | #{progress} %")
+        count + 1
+      end,
+      fn _ -> IO.write(device, "\r#{String.duplicate(" ", max_line_length)}\r") end
+    )
+  end
+
+  @doc """
   This function accumulates a value and let you do something with is after the
   stream has finished processing. The Stream content itselve is left unchanged.
   This is usefull for gathering some statistics along the way.
