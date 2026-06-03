@@ -35,6 +35,17 @@ defmodule FinopstechUtilities.ModulesTest do
       assert matches?(Test.EventListener, group: {:listener, env: :dev})
       refute matches?(Test.EventListener, group: :listener)
     end
+
+    test "detects whether a Module lives in the given namespace for :in_namespace" do
+      assert matches?(My.EventListener, in_namespace: My)
+      refute matches?(My.EventListener, in_namespace: Test)
+
+      # the namespace module itself does not lie within its own namespace
+      refute matches?(Foo, in_namespace: Foo)
+
+      # a partial name segment is not a namespace match
+      refute matches?(FooBar.Listener, in_namespace: Foo)
+    end
   end
 
   describe "find/2" do
@@ -46,6 +57,11 @@ defmodule FinopstechUtilities.ModulesTest do
       assert [Test.EventListener] = find(@modules, group: {:listener, env: :test})
 
       assert [] = find(@modules, group: {:listener, env: :prod})
+    end
+
+    test "returns all modules nested below the given namespace" do
+      assert [My.EventListener] = find(@modules, in_namespace: My)
+      assert [Test.EventListener] = find(@modules, in_namespace: Test)
     end
   end
 end

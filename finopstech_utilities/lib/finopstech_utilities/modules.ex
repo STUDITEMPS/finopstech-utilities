@@ -44,6 +44,8 @@ defmodule FinopstechUtilities.Modules do
 
   @type group_identifier :: term()
 
+  @type criteria :: [{:group, term()} | {:in_namespace, module()}]
+
   defmacro __using__(opts) do
     validate_opts!(opts)
 
@@ -68,20 +70,36 @@ defmodule FinopstechUtilities.Modules do
       iex> find(group: {:event_listeners, env: :test})
       [Test.EventListener]
 
+  Modules can also be found by the namespace they live in. The given module name
+  is treated as a namespace and all modules nested below it are returned:
+
+      iex> find(in_namespace: My.EventListeners)
+      [My.EventListeners.Signup, My.EventListeners.Logout]
+
   """
-  @spec find(atom(), group: term()) :: [module()]
+  @spec find([module()], criteria()) :: [module()]
   def find(modules \\ from_app!(), criteria) do
     Enum.filter(modules, &matches?(&1, criteria))
   end
 
-  @spec matches?(module(), group: term()) :: boolean()
-  def matches?(module, criteria) when is_list(criteria) do
-    markers = get_markers(module)
+  @doc """
+  Checks whether the given module matches all of the given criteria.
 
+  Besides matching against the markers defined via `use FinopstechUtilities.Modules`,
+  the special `:in_namespace` criterion matches every module nested below the
+  given module name.
+  """
+  @spec matches?(module(), criteria()) :: boolean()
+  def matches?(module, criteria) when is_list(criteria) do
     Enum.all?(criteria, fn
-      {key, _} = marker when is_atom(key) -> marker in markers
+      {:in_namespace, namespace} -> in_namespace?(module, namespace)
+      {key, _} = marker when is_atom(key) -> marker in get_markers(module)
       _ -> raise ArgumentError, "criteria must be a keyword list, got: #{inspect(criteria)}"
     end)
+  end
+
+  defp in_namespace?(module, namespace) do
+    String.starts_with?(to_string(module), to_string(namespace) <> ".")
   end
 
   @doc """
