@@ -3,39 +3,49 @@ if Code.ensure_loaded?(Gherkin) do
     @shortdoc "Generiere die Spezifikationsschritte anhand einer .feature Datei"
 
     @moduledoc """
-    Generiert die fehlenden Spezifikationsschritte (Step-Definitionen) anhand
-    einer Gherkin-`.feature`-Datei.
+    Generiert das test script mit den notwendigen Step-Definitionen anhand einer Gherkin-`.feature`-Datei.
 
     ## Verwendung
 
         mix test.generiere_spezifikation [Optionen] pfad/zur/datei.feature
 
-    Existiert die Zieldatei noch nicht, wird sie neu erzeugt. Existiert sie
-    bereits, wird sie aktualisiert: die schon definierten Schritte werden aus dem
-    bestehenden AST gelesen, und nur die noch fehlenden werden vor dem Modul-`end`
-    ergänzt. Vorhandene Schritt-Implementierungen, Kommentare und Formatierung
-    bleiben dabei unberührt. Mit `--force` wird die Datei stattdessen komplett neu
-    geschrieben.
+    Existiert die Zieldatei bereits, werden nur die noch fehlenden Schritte
+    ergänzt. Mit `--force` wird die Datei komplett neu geschrieben.
 
     ## Optionen
 
       * `--template` / `-t` — das Feature-Template-Modul, das im generierten Test
-        per `use` eingebunden wird. Ohne Angabe greift das konfigurierte Template
+        per `use` eingebunden wird. Ohne Angabe wird das Template ermittelt
         (siehe Konfiguration).
-      * `--async` / `-a` — Gibt an ob die Spezifikation als async generiert werden soll
+      * `--async` / `-a` — Gibt an ob die Spezifikation als async generiert werden
+        soll. Ohne Angabe greift die Konfiguration (siehe Konfiguration).
       * `--output` / `-o` — Datei in den das test modul geschrieben wird
       * `--force` / `-f` — schreibt die Zieldatei komplett neu, statt eine
         vorhandene zu aktualisieren, und überspringt die Template-Prüfung.
 
     ## Konfiguration
 
-    Das Feature-Template-Modul lässt sich per compile_env konfigurieren:
+    Die Generierung lässt unter `:feature_generation` konfigurieren:
 
-        config :finopstech_utilities, :feature_template, MeinApp.Feature
+    ### Konfigurationsoptionen
 
-    Ist nichts konfiguriert, wird `Cabbage.Feature` verwendet und eine Warnung
-    ausgegeben, die zur expliziten Konfiguration auffordert. Eine `--template`-
-    Option hat Vorrang vor dieser Konfiguration.
+      * `:template` — Das module, das als feature Template in das test file generiert wird.
+      * `:async` — Wenn angegeben wird die async: option emtsprechend dem Test Template mit übergeben.
+
+    ### Beispiel
+
+        config :finopstech_utilities, :feature_generation,
+          template: MeineApp.Feature,
+          async: true
+
+    generiert
+
+        use MeineApp.Feature, async: true, file: "output/path.exs"
+
+    Ist `:template` nicht gesetzt, wird das aus dem Projekt-Modul abgeleitete
+    `<Projekt>.Feature` verwendet (z. B. `MeinApp.Feature` für die App
+    `:mein_app`), sofern dieses Modul existiert; andernfalls `Cabbage.Feature`,
+    begleitet von einer Warnung.
     """
 
     use Mix.Task
@@ -46,9 +56,11 @@ if Code.ensure_loaded?(Gherkin) do
 
     @fallback_template Cabbage.Feature
 
-    # Per compile_env konfigurierbares Template; greift, wenn keine --template-Option
-    # angegeben ist (config :finopstech_utilities, :feature_template, MeinModul).
-    @configured_template Application.compile_env(:finopstech_utilities, :feature_template)
+    # Per compile_env konfigurierbare Generierungs-Optionen, gebündelt unter einem
+    # Schlüssel: config :finopstech_utilities, :feature_generation, template: MeinModul, async: true
+    @feature_generation Application.compile_env(:finopstech_utilities, :feature_generation, [])
+    @configured_template @feature_generation[:template]
+    @configured_async @feature_generation[:async]
 
     @options [force: :boolean, template: :string, async: :boolean, output: :string]
     @aliases [f: :force, t: :template, a: :async, o: :output]
@@ -62,7 +74,7 @@ if Code.ensure_loaded?(Gherkin) do
 
       dateipfad = dateipfad(args)
       template = template_module(opts[:template])
-      use_opts = use_options(dateipfad, opts[:async])
+      use_opts = use_options(dateipfad, Keyword.get(opts, :async, @configured_async))
       module_name = test_module_name(dateipfad)
       zielpfad = opts[:output] || test_file_path(module_name)
 
@@ -125,28 +137,34 @@ if Code.ensure_loaded?(Gherkin) do
       """)
     end
 
-    defp template_module(nil), do: @configured_template || fallback_template()
+    defp template_module(nil), do: @configured_template || abgeleitetes_template()
     defp template_module(name) when is_binary(name), do: Module.concat([name])
 
-    defp fallback_template do
+    # Leitet das Feature-Template aus dem Projekt-Modul ab (z. B. MeinApp.Feature
+    # für die App :mein_app). Existiert dieses Modul nicht, wird mit einer Warnung
+    # auf Cabbage.Feature zurückgefallen.
+    defp abgeleitetes_template do
+      kandidat = Module.concat([Macro.camelize("#{Mix.Project.config()[:app]}"), "Feature"])
+
+      if Code.ensure_loaded?(kandidat), do: kandidat, else: fallback_template(kandidat)
+    end
+
+    defp fallback_template(kandidat) do
       Mix.shell().info("""
-      Kein Feature-Template konfiguriert — es wird #{inspect(@fallback_template)} verwendet.
+      Feature-Template #{inspect(kandidat)} nicht gefunden. #{inspect(@fallback_template)} wird verwendet.
 
-      Bitte konfiguriere ein Feature-Template explizit, entweder #{inspect(@fallback_template)} selbst
-      oder das gewünschte Template:
+      Erstelle #{inspect(kandidat)}, oder konfiguriere ein anderes Feature-Template,
 
-          config :finopstech_utilities, :feature_template, #{inspect(@fallback_template)}
-          # oder
-          config :finopstech_utilities, :feature_template, MeinApp.Feature
+          config :finopstech_utilities, :feature_generation, template: MeinApp.Feature
 
-      Alternativ lässt es sich pro Aufruf über --template (oder -t) angeben.
+      oder gib es über --template (oder -t) an (z.B. `-t MeinApp.Feature`).
       """)
 
       @fallback_template
     end
 
-    # `async:` wird nur ergänzt, wenn --async (bzw. --no-async) angegeben wurde;
-    # ohne Angabe (nil) bleibt es weg.
+    # `async:` wird nur ergänzt, wenn es per --async/--no-async oder per Konfiguration
+    # gesetzt ist; ohne beides (nil) bleibt es weg.
     defp use_options(file, nil), do: [file: file]
     defp use_options(file, async), do: [file: file, async: async]
 

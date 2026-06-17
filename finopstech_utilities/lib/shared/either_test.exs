@@ -16,28 +16,33 @@ defmodule Shared.EitherTest do
   describe "guards" do
     test "is_left? returns true for error tuples" do
       require Either
+
       assert Either.is_left?({:error, :reason})
       assert Either.is_left?({:error, "message"})
     end
 
     test "is_left? returns false for ok tuples" do
       require Either
+
       refute Either.is_left?({:ok, "value"})
     end
 
     test "is_right? returns true for ok tuples" do
       require Either
+
       assert Either.is_right?({:ok, "value"})
       assert Either.is_right?({:ok, nil})
     end
 
     test "is_right? returns false for error tuples" do
       require Either
+
       refute Either.is_right?({:error, :reason})
     end
 
     test "is_either? returns true for both ok and error tuples" do
       require Either
+
       assert Either.is_either?({:ok, "value"})
       assert Either.is_either?({:error, :reason})
     end

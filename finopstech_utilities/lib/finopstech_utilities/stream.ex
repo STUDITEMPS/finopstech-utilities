@@ -23,6 +23,43 @@ defmodule FinopstechUtilities.Stream do
     stream_tap(stream, 0, fn _, c -> c + 1 end, fun)
   end
 
+  @spec stream_buffer(Enum.t(), (non_neg_integer() -> any())) :: Enum.t()
+  def stream_buffer(stream, _size \\ :infinity) do
+    Stream.resource(
+      fn ->
+        {pid, ref} = :erlang.spawn_opt(&stream_buffer_loop/0, alias: :demonitor)
+        send(pid, {:start, {pid, ref}, stream})
+      end,
+      fn {pid, ref} ->
+        receive do
+          {:stream_item, ^ref, value, ^pid} -> {[value], {pid, ref}}
+          {:DOWN, ^ref, :process, ^pid, :ok} -> {:halt, {pid, ref}}
+          {:DOWN, ^ref, :process, ^pid, reason} -> exit(reason)
+        end
+      end,
+      fn {pid, _ref} -> if Process.alive?(pid), do: Process.exit(pid, :kill) end
+    )
+  end
+
+  defp stream_buffer_loop do
+    receive do
+      {:start, {pid, ref}, stream} ->
+        stream_buffer_loop(self(), {pid, ref}, stream, Process.monitor(pid))
+    after
+      5000 -> exit(:no_input)
+    end
+  end
+
+  defp stream_buffer_loop(self, {pid, ref}, stream, monitor) do
+    Enum.reduce(stream, 0, fn item, _received ->
+      receive do
+        {:DOWN, ^monitor, :process, ^pid, reason} -> exit(reason)
+      after
+        0 -> send(ref, {:stream_item, ref, item, self})
+      end
+    end)
+  end
+
   @doc """
   Reports the progress of stream traversion to `:stdout`.
 

@@ -3,7 +3,10 @@ defmodule Shared.Util.SchemaTest do
 
   use ExUnit.Case, async: true
 
+  alias Shared.Util.Schema
+
   defmodule DummySchema do
+    @moduledoc false
     use Ecto.Schema
 
     schema "dummy" do
@@ -16,12 +19,12 @@ defmodule Shared.Util.SchemaTest do
 
   describe "erlaubte_felder/1" do
     test "returns writable fields excluding internal fields" do
-      assert Shared.Util.Schema.erlaubte_felder(DummySchema) == [:name, :email]
+      assert Schema.erlaubte_felder(DummySchema) == [:name, :email]
     end
 
     test "excludes :id, :lock_version, :inserted_at, :updated_at" do
       all_fields = DummySchema.__schema__(:fields)
-      erlaubte = Shared.Util.Schema.erlaubte_felder(DummySchema)
+      erlaubte = Schema.erlaubte_felder(DummySchema)
 
       refute :id in erlaubte
       refute :lock_version in erlaubte
