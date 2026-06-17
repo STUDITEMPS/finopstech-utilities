@@ -53,6 +53,9 @@ if Code.ensure_loaded?(Gherkin) do
     @options [force: :boolean, template: :string, async: :boolean, output: :string]
     @aliases [f: :force, t: :template, a: :async, o: :output]
 
+    @step_macros [:defgiven, :defwhen, :defthen]
+    @locals_without_parens Enum.map(@step_macros, &{&1, 4})
+
     @impl Mix.Task
     def run(args) do
       {opts, args} = OptionParser.parse!(args, strict: @options, aliases: @aliases)
@@ -91,7 +94,7 @@ if Code.ensure_loaded?(Gherkin) do
           end
         end
 
-      File.write!(zielpfad, format_module(module))
+      File.write!(zielpfad, module |> quoted_to_string() |> mix_format(zielpfad))
       Mix.shell().info("Spezifikation geschrieben nach #{zielpfad}")
     end
 
@@ -107,7 +110,7 @@ if Code.ensure_loaded?(Gherkin) do
           Mix.shell().info("#{zielpfad}: keine fehlenden Schritte — nichts zu tun.")
 
         fehlende ->
-          File.write!(zielpfad, insert_steps(content, ast, fehlende))
+          File.write!(zielpfad, insert_steps(content, ast, fehlende, zielpfad))
           Mix.shell().info("#{zielpfad}: #{length(fehlende)} fehlende(n) Schritt(e) ergänzt.")
       end
     end
@@ -150,14 +153,23 @@ if Code.ensure_loaded?(Gherkin) do
     defp test_module_name(dateipfad), do: Module.concat([Macro.camelize(Path.rootname(dateipfad) <> "_test")])
     defp test_file_path(modulename), do: Macro.underscore(modulename) <> ".ex"
 
-    defp format_module(module_definition) do
-      module_definition
-      |> Macro.to_string()
-      |> Code.format_string!()
-      |> then(&[&1, "\n"])
+    # Rendert ein Quoted-AST klammerlos zu Quelltext. quoted_to_algebra ist nötig,
+    # weil der Formatter vorhandene Klammern nicht entfernt; locals_without_parens
+    # steuert die klammerlose Ausgabe der Step-Makros.
+    defp quoted_to_string(quoted) do
+      quoted
+      |> Code.quoted_to_algebra(locals_without_parens: @locals_without_parens)
+      |> Inspect.Algebra.format(:infinity)
+      |> IO.iodata_to_binary()
     end
 
-    @step_macros [:defgiven, :defwhen, :defthen]
+    # Wendet exakt die mix-format-Regeln der Zieldatei an (inkl. .formatter.exs-
+    # Optionen und Plugins wie Styler), sodass ein anschließendes `mix format`
+    # die Datei nicht mehr verändert.
+    defp mix_format(source, file) do
+      {formatter, _opts} = Mix.Tasks.Format.formatter_for_file(file)
+      formatter.(source)
+    end
 
     # Sammelt die Regex-Muster aller bereits im AST definierten Schritte.
     defp existing_step_patterns(ast) do
@@ -185,19 +197,17 @@ if Code.ensure_loaded?(Gherkin) do
 
     # Fügt die gerenderten Schritt-Definitionen direkt vor dem schließenden `end`
     # des Moduls ein; der restliche Dateiinhalt bleibt unverändert.
-    defp insert_steps(content, {:defmodule, meta, _}, steps) do
+    defp insert_steps(content, {:defmodule, meta, _}, steps, file) do
       end_line = meta |> Keyword.fetch!(:end) |> Keyword.fetch!(:line)
-      {vorher, ab_end} = content |> String.split("\n") |> Enum.split(end_line - 1)
 
-      Code.format_string!(Enum.join(vorher ++ ["", render_steps(steps) | ab_end], "\n"))
+      content
+      |> String.split("\n")
+      |> List.insert_at(end_line - 1, render_steps(steps))
+      |> Enum.join("\n")
+      |> mix_format(file)
     end
 
-    defp render_steps(steps) do
-      steps
-      |> Enum.map_join("\n", fn %{definition: definition} ->
-        definition |> Macro.to_string() |> Code.format_string!()
-      end)
-    end
+    defp render_steps(steps), do: Enum.map_join(steps, "\n", &quoted_to_string(&1.definition))
 
     defp extract_scenario_steps(%{steps: steps}) do
       steps
