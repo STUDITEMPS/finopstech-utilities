@@ -6,11 +6,16 @@ defmodule Shared.Util.TransactionalTest do
   defmodule FakeRepo do
     @moduledoc false
 
-    # Protokolliert jeden transact/1-Aufruf, damit der Test belegen kann, dass
-    # der Rumpf tatsächlich innerhalb der Transaktion lief. Die Funktion wird
-    # einfach ausgeführt und ihr Ergebnis durchgereicht.
+    # Protokolliert jeden transact-Aufruf, damit der Test belegen kann, dass der
+    # Rumpf tatsächlich innerhalb der Transaktion lief. Die Funktion wird einfach
+    # ausgeführt und ihr Ergebnis durchgereicht.
     def transact(fun) when is_function(fun, 0) do
       send(self(), :transact_aufgerufen)
+      fun.()
+    end
+
+    def transact(fun, opts) when is_function(fun, 0) do
+      send(self(), {:transact_aufgerufen, opts})
       fun.()
     end
   end
@@ -34,6 +39,10 @@ defmodule Shared.Util.TransactionalTest do
     def klassifiziere(0), do: {:ok, :null}
     @transactional true
     def klassifiziere(_n), do: {:ok, :negativ}
+
+    # Optionen werden als zweites Argument an transact/2 durchgereicht
+    @transactional timeout: 30_000, mode: :savepoint
+    def mit_optionen(wert), do: {:ok, wert}
   end
 
   describe "@transactional true" do
@@ -47,6 +56,13 @@ defmodule Shared.Util.TransactionalTest do
     test "laufen ohne Transaktion" do
       assert Subject.echo(:raw) == :raw
       refute_received :transact_aufgerufen
+    end
+  end
+
+  describe "@transactional mit Optionen" do
+    test "reicht die Keyword-Liste als zweites Argument an transact/2 durch" do
+      assert Subject.mit_optionen(:x) == {:ok, :x}
+      assert_received {:transact_aufgerufen, [timeout: 30_000, mode: :savepoint]}
     end
   end
 
