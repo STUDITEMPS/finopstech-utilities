@@ -26,6 +26,8 @@ defmodule FinopstechUtilities.MixProject do
       {:phoenix, "~> 1.6"},
       {:jason, "~> 1.0"},
       {:ecto, "~> 3.0", optional: true},
+      # Optional für `Shared.Util.CSV.format_csv/2`.
+      {:csv, "~> 3.0", optional: true},
       # Optionaler Gherkin-Parser für `mix test.generiere_spezifikation`.
       {:gherkin, "~> 2.0", github: "studitemps/gherkin", optional: true, only: [:test, :dev]},
       {:styler, "~> 1.10", only: [:dev, :test], runtime: false},
