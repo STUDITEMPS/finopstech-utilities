@@ -28,8 +28,6 @@ defmodule FinopstechUtilities.AsyncChunks do
   > [!NOTE] Keep in mind that async processing indroduces additional overhead.
   > So it is recommended to stick to the `Enum` module if viable.
   """
-  require Integer
-
   @default_chunk_size 10
 
   @type opts :: [option()]
@@ -264,7 +262,7 @@ defmodule FinopstechUtilities.AsyncChunks do
 
   ## Example
 
-      iex> to_list process(?A..?Z, &to_string/1)  
+      iex> to_list process(?A..?Z, &to_string/1)
       ["ABCDEFGHIJ", "KLMNOPQRST", "UVWXYZ"]
   """
   @spec process(Enum.t(), (term() -> term()), opts()) :: Enum.t()
