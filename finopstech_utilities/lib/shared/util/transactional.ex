@@ -27,6 +27,25 @@ defmodule Shared.Util.Transactional do
         end)
       end
 
+  ## Result Mapping
+
+  Mit `:map_result` kann eine funktion angegeben werden, durch die das result
+  der transaction gemappt werden kann. Lokale functionen werden als atom
+  `:function_name` angegeben und remote functions als Tuple `{Module, :function_name}`.
+
+      defmodule Konto do
+        use Shared.Util.Transactional, repo: MyApp.Repo, map_result: :simplify_ok
+
+        @transactional true
+        def transfer(from, to, betrag) do
+          Konto.belasten(from, betrag)
+          Konto.gutschreiben(to, betrag)
+        end
+
+        defp simplify_ok({:ok, :ok}), do: :ok
+        defp simplify_ok(result), do: result
+      end
+
   ## Optionen
 
   Statt `true` kannst du `@transactional` die options für `c:Ecto.Repo.transact/2` zuweisen
@@ -67,8 +86,10 @@ defmodule Shared.Util.Transactional do
     repo =
       Keyword.get(opts, :repo) || raise ArgumentError, "`:repo` muss als Option übergeben werden."
 
+    map_result = Keyword.get(opts, :map_result)
+
     quote do
-      @transaction_repo unquote(repo)
+      @transactional_config %{repo: unquote(repo), map_result: unquote(map_result)}
       Module.register_attribute(__MODULE__, :transactional_clauses, accumulate: true)
       @on_definition Shared.Util.Transactional
       @before_compile Shared.Util.Transactional
@@ -88,10 +109,7 @@ defmodule Shared.Util.Transactional do
   defmacro __before_compile__(%{module: module} = _env) do
     transactional_clauses = Module.get_attribute(module, :transactional_clauses)
 
-    repo =
-      if !Enum.empty?(transactional_clauses) do
-        Module.get_attribute(module, :transaction_repo) || raise_missing_repo(module)
-      end
+    %{} = config = Module.get_attribute(module, :transactional_config)
 
     opts_by_function =
       Enum.reduce(transactional_clauses, %{}, fn {function, clause_line, opts}, acc ->
@@ -108,7 +126,7 @@ defmodule Shared.Util.Transactional do
         body =
           case get_opts(clause_opts, meta) do
             nil -> body
-            opts -> wrap_body(body, repo, opts)
+            opts -> wrap_body(body, config, opts)
           end
 
         build_clause(kind, head, body)
@@ -148,13 +166,21 @@ defmodule Shared.Util.Transactional do
     end
   end
 
-  defp wrap_body(body, repo, []) do
+  defp wrap_body(body, config, opts) when is_map_key(config, :map_result) do
+    case Map.pop!(config, :map_result) do
+      {nil, config} -> wrap_body(body, config, opts)
+      {{mod, fun}, config} -> build_call(mod, fun, [wrap_body(body, config, opts)])
+      {local_fun, config} -> build_call(local_fun, [wrap_body(body, config, opts)])
+    end
+  end
+
+  defp wrap_body(body, %{repo: repo}, []) do
     quote do
       unquote(repo).transact(fn -> unquote(body) end)
     end
   end
 
-  defp wrap_body(body, repo, opts) do
+  defp wrap_body(body, %{repo: repo}, opts) do
     quote do
       unquote(repo).transact(
         fn -> unquote(body) end,
@@ -170,9 +196,15 @@ defmodule Shared.Util.Transactional do
     end)
   end
 
-  defp raise_missing_repo(module) do
-    raise ArgumentError,
-          "Shared.Util.Transactional: In #{inspect(module)} wird @transactional verwendet, " <>
-            "aber `@transaction_repo` wurde entfernt`."
+  def build_call(fun, args) when is_atom(fun) do
+    quote do
+      unquote(fun)(unquote_splicing(args))
+    end
+  end
+
+  def build_call(mod, fun, args) when is_atom(fun) do
+    quote do
+      unquote(mod).unquote(fun)(unquote_splicing(args))
+    end
   end
 end

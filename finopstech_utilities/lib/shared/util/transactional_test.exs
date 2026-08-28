@@ -81,4 +81,41 @@ defmodule Shared.Util.TransactionalTest do
       assert_received :transact_aufgerufen
     end
   end
+
+  describe ":map_result Option" do
+    test "Schickt das transaction result an lokale funktion bei atom" do
+      defmodule MapResultWithLocalFunction do
+        @moduledoc false
+        use Shared.Util.Transactional,
+          repo: Shared.Util.TransactionalTest.FakeRepo,
+          map_result: :map_result
+
+        @transactional true
+        def echo(value), do: value
+
+        def map_result({:ok, :ok}), do: :ok
+        def map_result(result), do: result
+      end
+
+      assert :ok = MapResultWithLocalFunction.echo({:ok, :ok})
+      assert_received :transact_aufgerufen
+      assert {:ok, :noop} = MapResultWithLocalFunction.echo({:ok, :noop})
+      assert_received :transact_aufgerufen
+    end
+
+    test "Schickt das transaction result an remote funktion bei tuple" do
+      defmodule MapResultWithRemoteFunction do
+        @moduledoc false
+        use Shared.Util.Transactional,
+          repo: Shared.Util.TransactionalTest.FakeRepo,
+          map_result: {Tuple, :to_list}
+
+        @transactional true
+        def echo(value), do: value
+      end
+
+      assert [:ok, :echo] = MapResultWithRemoteFunction.echo({:ok, :echo})
+      assert_received :transact_aufgerufen
+    end
+  end
 end
