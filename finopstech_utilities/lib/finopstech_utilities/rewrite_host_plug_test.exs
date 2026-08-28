@@ -1,6 +1,5 @@
 defmodule FinopstechUtilities.RewriteHostPlugTest do
   use ExUnit.Case, async: true
-  use Plug.Test
 
   import Phoenix.ConnTest
 
