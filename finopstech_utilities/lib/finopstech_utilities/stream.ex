@@ -72,15 +72,18 @@ defmodule FinopstechUtilities.Stream do
   @spec stream_progress(list() | map()) :: Enum.t()
   def stream_progress(enum), do: stream_progress(enum, :stdio)
 
-  @spec stream_progress(Enum.t(), non_neg_integer() | IO.device()) :: Enum.t()
+  @spec stream_progress(Enum.t(), non_neg_integer()) :: Enum.t()
   def stream_progress(enum, total) when is_integer(total), do: stream_progress(enum, total, :stdio)
 
+  @spec stream_progress(list() | map(), IO.device()) :: Enum.t()
   def stream_progress(list, device) when is_list(list), do: stream_progress(list, length(list), device)
 
   def stream_progress(%{} = map, device) when not is_struct(map), do: stream_progress(map, map_size(map), device)
 
   @spec stream_progress(Enum.t(), non_neg_integer(), IO.device()) :: Enum.t()
-  def stream_progress(enum, total, device) when is_integer(total) do
+  def stream_progress(enum, 0, _device) when is_integer(total), do: enum
+
+  def stream_progress(enum, total, device) when is_integer(total) and total > 0 do
     digits = trunc(:math.log10(total)) + 1
     max_line_length = digits * 2 + 12
 
