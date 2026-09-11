@@ -3,6 +3,8 @@ defmodule Shared.Util.TransactionalTest do
 
   use ExUnit.Case, async: true
 
+  alias Shared.Util.Transactional
+
   defmodule FakeRepo do
     @moduledoc false
 
@@ -22,7 +24,7 @@ defmodule Shared.Util.TransactionalTest do
 
   defmodule Subject do
     @moduledoc false
-    use Shared.Util.Transactional, repo: Shared.Util.TransactionalTest.FakeRepo
+    use Transactional, repo: Shared.Util.TransactionalTest.FakeRepo
 
     @transactional true
     def transfer(from, to, betrag) do
@@ -86,7 +88,7 @@ defmodule Shared.Util.TransactionalTest do
     test "Schickt das transaction result an lokale funktion bei atom" do
       defmodule MapResultWithLocalFunction do
         @moduledoc false
-        use Shared.Util.Transactional,
+        use Transactional,
           repo: Shared.Util.TransactionalTest.FakeRepo,
           map_result: :map_result
 
@@ -106,7 +108,7 @@ defmodule Shared.Util.TransactionalTest do
     test "Schickt das transaction result an remote funktion bei tuple" do
       defmodule MapResultWithRemoteFunction do
         @moduledoc false
-        use Shared.Util.Transactional,
+        use Transactional,
           repo: Shared.Util.TransactionalTest.FakeRepo,
           map_result: {Tuple, :to_list}
 
