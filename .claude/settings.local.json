@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mix format *)",
+      "Bash(mix test *)",
+      "Bash(grep -v \"^$\")",
+      "Bash(elixir -e 'Code.require_file\\(\"release_task_test.exs\"\\); ExUnit.start\\(\\); ')",
+      "Bash(mix run *)",
+      "Bash(mix compile *)",
+      "Bash(git mv *)",
+      "Bash(elixir /tmp/parse_test.exs)",
+      "Bash(elixir /tmp/parse_test2.exs)",
+      "Bash(mix deps.get)",
+      "Bash(cp lib/shared/util/csv_test.exs /tmp/before.exs)",
+      "Read(//tmp/**)",
+      "Bash(git add *)",
+      "Bash(git --no-pager diff --cached finopstech_utilities/mix.exs)",
+      "Bash(git --no-pager diff finopstech_utilities/mix.exs)",
+      "Bash(git --no-pager diff --cached -- finopstech_utilities/mix.exs)",
+      "Bash(git --no-pager diff -- finopstech_utilities/mix.exs)",
+      "Bash(git --no-pager diff -- mix.exs)"
+    ]
+  }
+}

@@ -81,7 +81,7 @@ defmodule FinopstechUtilities.Stream do
   def stream_progress(%{} = map, device) when not is_struct(map), do: stream_progress(map, map_size(map), device)
 
   @spec stream_progress(Enum.t(), non_neg_integer(), IO.device()) :: Enum.t()
-  def stream_progress(enum, 0, _device) when is_integer(total), do: enum
+  def stream_progress(enum, 0, _device), do: enum
 
   def stream_progress(enum, total, device) when is_integer(total) and total > 0 do
     digits = trunc(:math.log10(total)) + 1
