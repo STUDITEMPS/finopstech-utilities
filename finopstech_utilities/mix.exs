@@ -5,7 +5,7 @@ defmodule FinopstechUtilities.MixProject do
     [
       app: :finopstech_utilities,
       version: "0.1.0",
-      elixir: "~> 1.12",
+      elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       test_paths: ["lib"]
@@ -30,7 +30,7 @@ defmodule FinopstechUtilities.MixProject do
       {:csv, "~> 3.0", optional: true},
       # Optionaler Gherkin-Parser für `mix test.generiere_spezifikation`.
       {:gherkin, "~> 2.0", github: "studitemps/gherkin", optional: true, only: [:test, :dev]},
-      {:styler, "~> 1.10", only: [:dev, :test], runtime: false},
+      {:styler, "~> 1.12", only: [:dev, :test], runtime: false},
       {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
