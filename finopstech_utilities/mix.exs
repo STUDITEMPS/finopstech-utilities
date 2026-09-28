@@ -28,6 +28,8 @@ defmodule FinopstechUtilities.MixProject do
       {:ecto, "~> 3.0", optional: true},
       # Optional für `Shared.Util.CSV.format_csv/2`.
       {:csv, "~> 3.0", optional: true},
+      # Optional for `Shared.Number` (German number formatting via CLDR).
+      {:ex_cldr_numbers, "~> 2.38", optional: true},
       # Optionaler Gherkin-Parser für `mix test.generiere_spezifikation`.
       {:gherkin, "~> 2.0", github: "studitemps/gherkin", optional: true, only: [:test, :dev]},
       {:styler, "~> 1.12", only: [:dev, :test], runtime: false},
